@@ -1,75 +1,110 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Full stack example with SQL database backend</title>
+  <head>
+    <meta charset="UTF-8">
+    <title>Full stack example with SQL database backend</title>
+    <script src="https://apis.google.com/js/api.js"></script>
 
-        <script>
+    <script>
 
-         function getAddress(e) {
-             console.log(e.target.innerHTML);
-             let streetName = encodeURI(e.target.innerHTML);
+      var GoogleAuth; // Google Auth object.
+      function initClient() {
+	gapi.client.init({
+	  'clientId': '107256413984-robu42j2h8pudd3gp9el1qlu190shmhj.apps.googleusercontent.com',
+	  'scope': 'profile email openid',
+	  'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+	}).then(function () {
+	  GoogleAuth = gapi.auth2.getAuthInstance();
 
-             fetch(`streets/${streetName}`)
-                 .then( response => {                     
-                     return response.json();                     
-                 })
-                 .then( json => {
-                     console.log(json);
-                     let map = document.querySelector('#map');
-                     map.innerHTML = '';                     
-                     json.forEach( address => {
-                         let elem = document.createElement('div');
-                         elem.innerHTML = `${address.Number} ${address.Name}`;
-                         map.appendChild(elem);
-                     });
+	  // Listen for sign-in state changes.
+	  GoogleAuth.isSignedIn.listen(updateSigninStatus);
 
-                 });
-         }
-         
-         // no code should execute before loading of page
-         window.addEventListener('load', () => {
-         
-             // here we get the list of streets in vancouver
-             // that has bike racks available.
+	  if (!GoogleAuth.currentUser.get().isSignedIn()) {
+	    GoogleAuth.signIn();	    
+	  } else {
+	    initApp();
+	  }
+	  
+	});
+      }
 
-             // we are going to use the fetch api (modern browsers only)
+      function updateSigninStatus(status) {
+	console.log('updated', status);
+	initApp();
+      }
+      
+      function getAddress(e) {
+        console.log(e.target.innerHTML);
+        let streetName = encodeURI(e.target.innerHTML);
 
-             fetch('streets')
-                 .then(function(response) {
-                     return response.json();
-                 })
-                 .then(function(json) {
-                     // modify DOM element
-                     let container = document.querySelector('#streets');
+        fetch(`streets/${streetName}`, {
+	  headers: {
+	    'Authorization': `Bearer ${GoogleAuth.currentUser.get().getAuthResponse().access_token}`
+	  }
+	}).then( response => {                     
+            return response.json();                     
+          })
+          .then( json => {
+            console.log(json);
+            let map = document.querySelector('#map');
+            map.innerHTML = '';                     
+            json.forEach( address => {
+              let elem = document.createElement('div');
+              elem.innerHTML = `${address.Number} ${address.Name}`;
+              map.appendChild(elem);
+            });
 
-                     json.forEach( street => {
-                         let elem = document.createElement('div');
-                         elem.innerHTML = street.Name;
-                         elem.addEventListener('click', getAddress);
-                         container.appendChild(elem);                         
-                     });
-                 }); 
-         });
+          });
+      }
 
-         
-         
-        </script>
+      function initApp() {
+        fetch('streets',{
+	  headers: {
+	    'Authorization': `Bearer ${GoogleAuth.currentUser.get().getAuthResponse().access_token}`
+	  }
+	}).then(function(response) {
+            return response.json();
+          })
+          .then(function(json) {
+            // modify DOM element
+            let container = document.querySelector('#streets');
 
-        <style>
-         #streets {
-             float: left;
-         }
-         
-         #map {
-             float: right;
-         }
-        </style>
-    </head>
+            json.forEach( street => {
+              let elem = document.createElement('div');
+              elem.innerHTML = street.Name;
+              elem.addEventListener('click', getAddress);
+              container.appendChild(elem);                         
+            });
+          }); 
+      }
+      
+      // no code should execute before loading of page
+      window.addEventListener('load', () => {
+	gapi.load('client:auth2', initClient);
 
-    <body>
-        <section id='streets'></section>
-        <section id='map'></section>
-    </body>
+      });      
+      
+    </script>
+
+    <style>
+      body {
+	  display: flex;
+      }
+      
+      #streets {
+	  height: 100vh;
+	  overflow: scroll;
+      }
+      
+      #map {
+      }
+      
+    </style>
+  </head>
+
+  <body>
+    <section id='streets'></section>
+    <section id='map'></section>
+  </body>
 
 </html>
