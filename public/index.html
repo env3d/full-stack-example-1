@@ -9,28 +9,28 @@
 
       var GoogleAuth; // Google Auth object.
       function initClient() {
-	gapi.client.init({
-	  'clientId': '107256413984-robu42j2h8pudd3gp9el1qlu190shmhj.apps.googleusercontent.com',
-	  'scope': 'profile email openid',
-	  'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-	}).then(function () {
-	  GoogleAuth = gapi.auth2.getAuthInstance();
+        gapi.client.init({
+          'clientId': '107256413984-robu42j2h8pudd3gp9el1qlu190shmhj.apps.googleusercontent.com',
+          'scope': 'profile email openid',
+          'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+        }).then(function () {
+          GoogleAuth = gapi.auth2.getAuthInstance();
 
-	  // Listen for sign-in state changes.
-	  GoogleAuth.isSignedIn.listen(updateSigninStatus);
+          // Listen for sign-in state changes.
+          GoogleAuth.isSignedIn.listen(updateSigninStatus);
 
-	  if (!GoogleAuth.currentUser.get().isSignedIn()) {
-	    GoogleAuth.signIn();	    
-	  } else {
-	    initApp();
-	  }
-	  
-	});
+          if (!GoogleAuth.currentUser.get().isSignedIn()) {
+            GoogleAuth.signIn();            
+          } else {
+            initApp();
+          }
+          
+        });
       }
 
       function updateSigninStatus(status) {
-	console.log('updated', status);
-	initApp();
+        console.log('updated', status);
+        initApp();
       }
       
       function getAddress(e) {
@@ -38,10 +38,10 @@
         let streetName = encodeURI(e.target.innerHTML);
 
         fetch(`streets/${streetName}`, {
-	  headers: {
-	    'Authorization': `Bearer ${GoogleAuth.currentUser.get().getAuthResponse().access_token}`
-	  }
-	}).then( response => {                     
+          headers: {
+            'Authorization': `Bearer ${GoogleAuth.currentUser.get().getAuthResponse().access_token}`
+          }
+        }).then( response => {                     
             return response.json();                     
           })
           .then( json => {
@@ -59,10 +59,10 @@
 
       function initApp() {
         fetch('streets',{
-	  headers: {
-	    'Authorization': `Bearer ${GoogleAuth.currentUser.get().getAuthResponse().access_token}`
-	  }
-	}).then(function(response) {
+          headers: {
+            'Authorization': `Bearer ${GoogleAuth.currentUser.get().getAuthResponse().access_token}`
+          }
+        }).then(function(response) {
             return response.json();
           })
           .then(function(json) {
@@ -80,7 +80,7 @@
       
       // no code should execute before loading of page
       window.addEventListener('load', () => {
-	gapi.load('client:auth2', initClient);
+        gapi.load('client:auth2', initClient);
 
       });      
       
@@ -88,12 +88,12 @@
 
     <style>
       body {
-	  display: flex;
+          display: flex;
       }
       
       #streets {
-	  height: 100vh;
-	  overflow: scroll;
+          height: 100vh;
+          overflow: scroll;
       }
       
       #map {
